@@ -1,0 +1,11 @@
+//this file must be located under ./well-known/ directory and it's handling the url like https://10layn.com/post/post-slug
+
+{
+  "applinks": {
+    "apps": [], // This is usually left empty, but still must be included
+    "details": [{
+      "appID": "LKWJEF.10layn.com",
+      "paths": ["/post/*"]
+    }]
+  }
+}
