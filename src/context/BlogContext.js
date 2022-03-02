@@ -1,7 +1,7 @@
 // import jsonServer from "../api/jsonServer";
 import createDataContext from "./createDataContext";
 import Storage from "../utils/storage";
-import { fixYoutubeEmbed } from "../helpers/Functions";
+import { stripPostHtmlComments } from "../helpers/Functions";
 import { socket } from "../utils/io";
 import { useCallback } from "react";
 socket.connect();
@@ -309,10 +309,12 @@ const emitIndexPosts = ({
   dispatch,
 }) => {
   socket.emit(action, pgOrUid, (data) => {
+    //strip html comments before save localstorage
+    data.posts = stripPostHtmlComments(data.posts);
+
     // console.log(firstLoad, action, pgOrUid);
     firstLoad && socket.close() && saveCategories(data.categories);
     // console.log("emitIndexPosts", data);
-
     console.log("firstLoad", firstLoad);
     //get likes for the first load
     if (firstLoad) {
@@ -399,7 +401,10 @@ const dispatchIndexPosts = ({
       data: payload,
     });
 
-  // firsLoad && Storage.remove("state");
+  // firstLoad &&
+  //   Storage.remove({
+  //     key: "state",
+  //   });
 
   return dispatch({
     type: "get_blogposts",
@@ -472,8 +477,10 @@ const getCategoryPosts = (dispatch) => {
        * For getPostTerm route there are some missing fields for a post item like 'post_url' in response
        */
       socket.emit("getPostTerm", categoryId, "category", pg, function (data) {
-        // console.log("getCategoryPosts", data);
+        console.log("getCategoryPosts", data);
         socket.close();
+
+        console.log(JSON.stringify(data, null, 4));
 
         setLoading(false);
         if (setRefreshing) setRefreshing(false);
@@ -564,7 +571,8 @@ const getSinglePost = (dispatch) => {
 
     socket.emit("getLinkPost", post_url, false, function (data) {
       // socket.close();
-      //console.log("getSinglePostFromSlug", data);
+      console.log("getSinglePostFromSlug", data);
+
       dispatch({
         type: "get_single_post_from_slug",
         payload: {

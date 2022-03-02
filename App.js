@@ -4,7 +4,7 @@ import * as Notifications from "expo-notifications";
 import * as Linking from "expo-linking";
 // import { enableScreens } from "react-native-screens";
 
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TextPropTypes, View } from "react-native";
 import { Provider } from "./src/context/BlogContext";
 import { AppearanceProvider, useColorScheme } from "react-native-appearance";
 import { useFonts } from "expo-font";
@@ -23,7 +23,7 @@ import MemoizedCategoryScreen from "./src/screens/CategoryScreen";
 import FavoriteScreen from "./src/screens/FavoriteScreen";
 import SettingScreen from "./src/screens/SettingScreen";
 import ShowScreen from "./src/screens/ShowScreen";
-import ShareShowScreen from "./src/screens/ShareShowScreen";
+import ShowbyLinkScreen from "./src/screens/ShowbyLinkScreen";
 import TagShowScreen from "./src/screens/TagShowScreen";
 import { Feather } from "@expo/vector-icons";
 import CategoryTabs from "./src/components/navigation/CategoryTabs";
@@ -311,14 +311,15 @@ const switchNavigator = createStackNavigator(
     categoriesFlow: CategoryStack,
     Show: {
       screen: ShowScreen,
+      path: "/post/:id",
       navigationOptions: {
         headerShown: false,
       },
     },
     //show shared post deep linking
     //redirected from our 10layn.com server with ie: <script>window.location.replace("onlayn://post/ID_OF_THE_POST");</script>
-    ShareShow: {
-      screen: ShareShowScreen,
+    ShowByLink: {
+      screen: ShowbyLinkScreen,
       path: "/post/:id",
       navigationOptions: {
         headerShown: false,
@@ -330,6 +331,10 @@ const switchNavigator = createStackNavigator(
       params: { url: null },
       navigationOptions: {
         headerShown: true,
+        ...TransitionPresets.RevealFromBottomAndroid,
+        cardOverlayEnabled: true,
+        gestureEnabled: true,
+        gestureDirection: "vertical",
       },
     },
 
@@ -344,11 +349,12 @@ const switchNavigator = createStackNavigator(
   {
     defaultNavigationOptions: {
       headerShown: false,
-      gestureEnabled: true,
-      // cardOverlayEnabled: true,
+      gestureEnabled: false,
+      cardOverlayEnabled: true,
       ...TransitionPresets.SlideFromRightIOS,
-      // gestureEnabled: true,
+      gestureEnabled: true,
       gestureDirection: "horizontal",
+      gestureResponseDistance: 35,
     },
     mode: "modal",
     headerMode: "none",
@@ -384,27 +390,25 @@ export default () => {
   // console.log(bgColor);
 
   return (
-    <View style={{ flex: 1, backgroundColor: bgColor }}>
-      <AnimatedSplash
-        translucent={true}
-        isLoaded={loaded}
-        logoImage={splash}
-        backgroundColor={bgColor}
-        logoHeight={150}
-        logoWidth={150}
-        disableBackgroundImage={true}
-      >
-        {loaded ? (
-          <AppearanceProvider>
-            <Provider>
-              <App theme={theme} uriPrefix={prefix} />
-            </Provider>
-          </AppearanceProvider>
-        ) : (
-          <View style={{ flex: 1, backgroundColor: "#000" }} />
-        )}
-      </AnimatedSplash>
-    </View>
+    <AnimatedSplash
+      translucent={true}
+      isLoaded={loaded}
+      logoImage={splash}
+      backgroundColor={bgColor}
+      logoHeight={150}
+      logoWidth={150}
+      disableBackgroundImage={true}
+    >
+      {loaded ? (
+        <AppearanceProvider>
+          <Provider>
+            <App theme={theme} uriPrefix={prefix} />
+          </Provider>
+        </AppearanceProvider>
+      ) : (
+        <View style={{ backgroundColor: "#000" }} />
+      )}
+    </AnimatedSplash>
   );
 };
 

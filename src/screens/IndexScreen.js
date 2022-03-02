@@ -1,5 +1,12 @@
 import React, { memo, useContext, useEffect, useState, useRef } from "react";
-import { View, Text, FlatList, Button, RefreshControl } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Button,
+  RefreshControl,
+  InteractionManager,
+} from "react-native";
 import { useColorScheme } from "react-native-appearance";
 import getStyleSheet from "../styles/BaseStyles";
 import {
@@ -37,31 +44,33 @@ const InnerIndexScreen = React.memo(
     }, []);
 
     useEffect(() => {
-      let isSubscribed = true;
+      InteractionManager.runAfterInteractions(() => {
+        let isSubscribed = true;
 
-      if (isSubscribed) {
-        getBlogPostsFn({
-          page,
-          setLoading,
-          refresh: false,
-          fetch: false,
-        });
+        if (isSubscribed) {
+          getBlogPostsFn({
+            page,
+            setLoading,
+            refresh: false,
+            fetch: false,
+          });
 
-        if (page === 0) {
-          setTimeout(() => {
-            getBlogPostsFn({
-              page,
-              setLoading,
-              refresh: false,
-              fetch: true,
-            });
-          }, 500);
+          if (page === 0) {
+            setTimeout(() => {
+              getBlogPostsFn({
+                page,
+                setLoading,
+                refresh: false,
+                fetch: true,
+              });
+            }, 500);
+          }
         }
-      }
 
-      return () => {
-        isSubscribed = false;
-      };
+        return () => {
+          isSubscribed = false;
+        };
+      });
     }, []);
 
     const onRefresh = () => {
@@ -110,7 +119,7 @@ const InnerIndexScreen = React.memo(
               : "rgba(255,255,255,.15)",
             paddingVertical: 5,
           }}
-        />
+        ></Header>
         <View style={{ flex: 1 }}>
           {error ? (
             <View
@@ -132,6 +141,7 @@ const InnerIndexScreen = React.memo(
             </View>
           ) : (
             <FlatList
+              style={{ flex: 1 }}
               ref={listRef}
               key="index-posts"
               data={posts}
@@ -141,6 +151,7 @@ const InnerIndexScreen = React.memo(
               ListFooterComponent={
                 <FooterIndicator loadingMore={loading} error={error} />
               }
+              ListFooterComponentStyle={page > 0 ? { flex: 0 } : { flex: 1 }}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}

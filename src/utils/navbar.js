@@ -16,6 +16,9 @@ const XSMAX_HEIGHT = 896;
 const PRO_12MAX_WIDTH = 428;
 const PRO_12MAX_HEIGHT = 926;
 
+const IPHONE_13_WIDTH = 390;
+const IPHONE_13_HEIGHT = 844;
+
 export const IS_IPHONE_X = (() => {
   if (Platform.OS === "web") {
     return false;
@@ -26,7 +29,8 @@ export const IS_IPHONE_X = (() => {
         (D_HEIGHT === X_WIDTH && D_WIDTH === X_HEIGHT))) ||
     (D_HEIGHT === XSMAX_HEIGHT && D_WIDTH === XSMAX_WIDTH) ||
     (D_HEIGHT === XSMAX_WIDTH && D_WIDTH === XSMAX_HEIGHT) ||
-    (D_HEIGHT === PRO_12MAX_HEIGHT && D_WIDTH === PRO_12MAX_WIDTH)
+    (D_HEIGHT === PRO_12MAX_HEIGHT && D_WIDTH === PRO_12MAX_WIDTH) ||
+    (D_HEIGHT === IPHONE_13_HEIGHT && D_WIDTH === IPHONE_13_WIDTH)
   );
 })();
 

@@ -1,12 +1,10 @@
 import React from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, StyleSheet } from "react-native";
 import { useColorScheme } from "react-native-appearance";
 import { getDeviceTheme } from "../../helpers/Functions";
 
-const FooterIndicator = React.memo(({ loadingMore, error }) => {
+const FooterIndicator = React.memo(({ loadingMore, error, ...props }) => {
   const colorScheme = useColorScheme();
-  // const Styles = getStyleSheet(colorScheme);
-
   const isLight = getDeviceTheme(colorScheme) === "light";
 
   // console.log(loadingMore);
@@ -16,17 +14,26 @@ const FooterIndicator = React.memo(({ loadingMore, error }) => {
 
   return (
     <View
-      style={{
-        paddingVertical: 20,
-        borderTopWidth: 1,
-        borderColor: isLight ? "rgba(0,0,0,.15)" : "rgba(0,0,0,.15)",
-      }}
+      style={[
+        {
+          paddingVertical: 20,
+          borderTopWidth: 1,
+          display: "flex",
+          alignContent: "center",
+          alignItems: "center",
+          borderColor: isLight ? "rgba(0,0,0,.15)" : "rgba(0,0,0,.15)",
+        },
+        { ...props.style },
+      ]}
     >
       <ActivityIndicator
         animating
         size="large"
         color={isLight ? "#000" : "#eee"}
       />
+      {!props.hideText && (
+        <Text style={{ color: isLight ? "#000" : "#eee" }}>Yükleniyor...</Text>
+      )}
     </View>
   );
 });

@@ -1,23 +1,33 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  SafeAreaView,
   Text,
-  FlatList,
-  Image,
   View,
   Pressable,
   ImageBackground,
-  Modal,
   useWindowDimensions,
+  ActivityIndicator,
 } from "react-native";
 import YoutubeIframe, { getYoutubeMeta } from "react-native-youtube-iframe";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PlayIcon from "../../assets/images/svg/play-button.svg";
+import InView from "react-native-component-inview";
+import FooterIndicator from "../common/FooterIndicator";
 
 const BlogVideoItem = ({ item }) => {
   const [modalVisible, showModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+
+  const contentWidth = useWindowDimensions().width;
+
+  const checkVisible = (isVisible) => {
+    if (isVisible) {
+      setIsInView(isVisible);
+    } else {
+      setIsInView(isVisible);
+    }
+  };
 
   const onVideoPress = useCallback((videoId) => {
     showModal(true);
@@ -33,46 +43,26 @@ const BlogVideoItem = ({ item }) => {
   const closeModal = useCallback(() => showModal(false), []);
 
   return (
-    <View key={item} style={{ flex: 1 }}>
-      {!modalVisible ? (
-        <VideoItem videoId={item} onPress={onVideoPress} />
-      ) : (
-        <VideoModal
-          key={`vi-${item}`}
-          visible={modalVisible}
-          videoId={selectedVideo}
-          onClose={closeModal}
-        />
-      )}
-    </View>
-  );
-
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <FlatList
-        contentContainerStyle={{ margin: 16 }}
-        ListHeaderComponent={
-          <>
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-              100 Seconds of Code
-            </Text>
-            <ProgressBar progress={progress * 100} />
-          </>
-        }
-        data={videoSeries}
-        renderItem={({ item }) => (
-          <VideoItem videoId={item} onPress={onVideoPress} />
-        )}
-        keyExtractor={(item) => item}
-      />
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        onRequestClose={closeModal}
+    <InView onChange={(isVisible) => checkVisible(isVisible)}>
+      <View
+        key={item}
+        style={{
+          width: contentWidth,
+        }}
       >
-        <VideoModal videoId={selectedVideo} onClose={closeModal} />
-      </Modal>
-    </SafeAreaView>
+        {!modalVisible ? (
+          <VideoItem videoId={item} onPress={onVideoPress} />
+        ) : (
+          <VideoModal
+            key={`vi-${item}`}
+            visible={modalVisible}
+            videoId={selectedVideo}
+            onClose={closeModal}
+            isInView={isInView}
+          />
+        )}
+      </View>
+    </InView>
   );
 };
 
@@ -85,29 +75,36 @@ const getProgress = async (videoId) => {
   return completed;
 };
 
-const ProgressBar = ({ progress }) => {
-  const width = (progress || 0) + "%";
-  return (
-    <View style={{ borderWidth: 1, marginVertical: 16 }}>
-      <View
-        style={{
-          backgroundColor: "green",
-          height: 10,
-          width,
-        }}
-      />
-    </View>
-  );
-};
+// const ProgressBar = ({ progress }) => {
+//   const width = (progress || 0) + "%";
+//   return (
+//     <View style={{ borderWidth: 1, marginVertical: 16 }}>
+//       <View
+//         style={{
+//           backgroundColor: "green",
+//           height: 10,
+//           width,
+//         }}
+//       />
+//     </View>
+//   );
+// };
 
 const VideoItem = ({ videoId, onPress }) => {
   const contentWidth = useWindowDimensions().width;
   const [videoMeta, setVideoMeta] = useState(null);
+
   useEffect(() => {
-    let videoItemActive = true;
-    getYoutubeMeta(videoId).then((data) => {
-      if (videoItemActive) setVideoMeta(data);
-    });
+    (async () => {
+      try {
+        let videoItemActive = true;
+        getYoutubeMeta(videoId).then((data) => {
+          if (videoItemActive) {
+            setVideoMeta(data);
+          }
+        });
+      } catch (e) {}
+    })();
 
     return () => {
       // second, we return an anonymous clean up function
@@ -117,9 +114,9 @@ const VideoItem = ({ videoId, onPress }) => {
 
   if (videoMeta) {
     return (
-      <View key={`im-${videoId}`}>
+      <View key={`im-${videoId}`} style={{ position: "relative" }}>
         <Pressable
-          style={{ flex: 1, alignItems: "center" }}
+          style={{ flex: 1, alignItems: "stretch" }}
           onPress={() => onPress(videoId)}
         >
           <ImageBackground
@@ -127,6 +124,7 @@ const VideoItem = ({ videoId, onPress }) => {
             style={{
               height: 280,
               width: contentWidth,
+              marginLeft: -20,
               resizeMode: "cover",
               alignItems: "center",
               position: "relative",
@@ -167,36 +165,15 @@ const VideoItem = ({ videoId, onPress }) => {
         </Pressable>
       </View>
     );
-
-    return (
-      <Pressable
-        onPress={() => onPress(videoId)}
-        style={{ flexDirection: "row", marginVertical: 16 }}
-      >
-        <Image
-          source={{ uri: videoMeta.thumbnail_url }}
-          style={{
-            width: videoMeta.thumbnail_width / 4,
-            height: videoMeta.thumbnail_height / 4,
-          }}
-        />
-        <View style={{ justifyContent: "center", marginStart: 16 }}>
-          <Text style={{ marginVertical: 4, fontWeight: "bold" }}>
-            {videoMeta.title}
-          </Text>
-          <Text>{videoMeta.author_name}</Text>
-        </View>
-      </Pressable>
-    );
   }
   return null;
 };
 
-const VideoModal = ({ videoId, onClose }) => {
+const VideoModal = ({ videoId, onClose, isInView, visible }) => {
   const contentWidth = useWindowDimensions().width;
   const playerRef = useRef(null);
   const [completed, setCompleted] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const timer = setInterval(() => {
       playerRef.current?.getCurrentTime().then((data) => {
@@ -214,6 +191,7 @@ const VideoModal = ({ videoId, onClose }) => {
   }, [videoId, completed]);
 
   const onPlayerReady = useCallback(() => {
+    setLoading(false);
     getVideoProgress(videoId)
       .then((data) => {
         if (data.timeStamp) {
@@ -230,22 +208,52 @@ const VideoModal = ({ videoId, onClose }) => {
       key={`vim-${videoId}`}
       style={{
         width: contentWidth,
+        height: 280,
         marginLeft: -20,
+        alignSelf: "stretch",
+        position: "relative",
       }}
     >
+      {!loading && (
+        <FooterIndicator
+          loadingMore={true}
+          hideText={true}
+          style={{
+            paddingVertical: 0,
+            display: "inline",
+            top: "50%",
+            left: "50%",
+            marginLeft: -18,
+            marginTop: -18,
+            position: "absolute",
+          }}
+        ></FooterIndicator>
+      )}
       <YoutubeIframe
+        webViewStyle={{
+          marginTop: 25,
+          flex: 1,
+          alignItems: "stretch",
+          height: "100%",
+          marginBottom: "auto",
+        }}
         ref={playerRef}
-        play={true}
+        play={isInView}
         videoId={videoId}
         height={280}
         onReady={onPlayerReady}
         onChangeState={(state) => {
+          setLoading(state);
+          console.log(state);
           if (state === "ended") {
             setCompleted(true);
           }
         }}
-        style={{
-          alignSelf: "center",
+        initialPlayerParams={{
+          playerLang: "tr",
+          showClosedCaptions: false,
+          controls: false,
+          modestbranding: false,
         }}
       />
     </View>

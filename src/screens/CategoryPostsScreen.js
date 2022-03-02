@@ -7,9 +7,9 @@ import {
   RefreshControl,
   Pressable,
   BackHandler,
+  InteractionManager,
 } from "react-native";
 import { useColorScheme } from "react-native-appearance";
-import Storage from "../utils/storage";
 import getStyleSheet from "../styles/BaseStyles";
 import { Context } from "../context/BlogContext";
 import { getDefaultColor, getDeviceTheme, isLiked } from "../helpers/Functions";
@@ -33,48 +33,52 @@ const InnerCategoryScreen = React.memo(
         ? categoryPosts[categoryKey]
         : [];
 
+    console.log(JSON.stringify(currentCategoryPosts, null, 4));
+
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(0);
 
     useEffect(() => {
-      // InteractionManager.runAfterInteractions(() => {
+      InteractionManager.runAfterInteractions(() => {
+        let isSubscribed = true;
 
-      let isSubscribed = true;
+        if (isSubscribed) {
+          if (currentCategoryPosts.length === 0) {
+            getCategoryPostsFn({
+              categoryId,
+              categorySlug,
+              page: 0,
+              refresh: false,
+              setLoading,
+              storage: true,
+            });
 
-      if (isSubscribed) {
-        if (currentCategoryPosts.length === 0) {
-          getCategoryPostsFn({
-            categoryId,
-            categorySlug,
-            page: 0,
-            refresh: false,
-            setLoading,
-            storage: true,
-          });
-
-          if (page === 0) {
-            setTimeout(() => {
-              getCategoryPostsFn({
-                categoryId,
-                categorySlug,
-                page: 0,
-                refresh: false,
-                setLoading,
-                storage: false,
-              });
-            }, 50);
+            if (page === 0) {
+              setTimeout(() => {
+                getCategoryPostsFn({
+                  categoryId,
+                  categorySlug,
+                  page: 0,
+                  refresh: false,
+                  setLoading,
+                  storage: false,
+                });
+              }, 50);
+            }
           }
         }
-      }
 
-      BackHandler.addEventListener("hardwareBackPress", backButtonHandler);
+        BackHandler.addEventListener("hardwareBackPress", backButtonHandler);
 
-      return () => {
-        isSubscribed = false;
-        BackHandler.removeEventListener("hardwareBackPress", backButtonHandler);
-      };
-      // });
+        return () => {
+          isSubscribed = false;
+          BackHandler.removeEventListener(
+            "hardwareBackPress",
+            backButtonHandler,
+          );
+        };
+      });
     }, []);
 
     // useEffect(() => {
@@ -92,16 +96,6 @@ const InnerCategoryScreen = React.memo(
     };
 
     const onRefresh = () => {
-      // const totalPage = state[`${categoryKey}_totalPage`];
-
-      // setState({
-      //   refreshing: true,
-      //   loadingMore: false,
-      //   [`${categoryKey}_page`]: 0,
-      //   // [`${categoryKey}_totalPage`]: totalPage,
-      //   error: false,
-      // });
-
       setPage(0);
       setRefreshing(true);
 
@@ -119,22 +113,9 @@ const InnerCategoryScreen = React.memo(
       if (loading) return null;
 
       const pg = page;
-      // const totalPage = state[`${categoryKey}_totalPage`];
-      // if (!categoryPosts.length && pg == totalPage) return null;
 
       setLoading(true);
       setPage(pg + 10);
-
-      // console.log("page", page);
-
-      // if (pg + 1 > 0) {
-      //   setState({
-      //     [`${categoryKey}_page`]: pg + 10,
-      //     // [`${categoryKey}_totalPage`]: totalPage,
-      //     loadingMore: true,
-      //     refreshing: false,
-      //     error: false,
-      //   });
 
       getCategoryPostsFn({
         categoryId,
@@ -204,35 +185,33 @@ const InnerCategoryScreen = React.memo(
               />
             </View>
           ) : (
-            <>
-              <FlatList
-                key={`category-posts-${categoryId}`}
-                data={currentCategoryPosts}
-                onEndReached={() => handleLoadMore()}
-                onEndReachedThreshold={0.02}
-                ListFooterComponent={
-                  <FooterIndicator loadingMore={loading} error={error} />
-                }
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    title="Lütfen bekleyiniz..."
-                    tintColor={isLight ? "black" : "white"}
-                    titleColor={isLight ? "black" : "white"}
-                  />
-                }
-                showsVerticalScrollIndicator={false}
-                keyExtractor={(blogPost) =>
-                  `cat_${categoryId}_${blogPost.id.toString()}`
-                }
-                renderItem={({ item }) => {
-                  return (
-                    <BlogPostItem liked={isLiked(likes, item.id)} item={item} />
-                  );
-                }}
-              />
-            </>
+            <FlatList
+              key={`category-posts-${categoryId}`}
+              data={currentCategoryPosts}
+              onEndReached={() => handleLoadMore()}
+              onEndReachedThreshold={0.02}
+              ListFooterComponent={
+                <FooterIndicator loadingMore={loading} error={error} />
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  title="Lütfen bekleyiniz..."
+                  tintColor={isLight ? "black" : "white"}
+                  titleColor={isLight ? "black" : "white"}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              keyExtractor={(blogPost) =>
+                `cat_${categoryId}_${blogPost.id.toString()}`
+              }
+              renderItem={({ item }) => {
+                return (
+                  <BlogPostItem liked={isLiked(likes, item.id)} item={item} />
+                );
+              }}
+            />
           )}
         </View>
       </View>

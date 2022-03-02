@@ -1,10 +1,11 @@
 import React from "react";
 import { View, Text, ActivityIndicator } from "react-native";
+import { withNavigation } from "react-navigation";
 import { useColorScheme } from "react-native-appearance";
 import BlogPostItem from "./BlogPostItem";
 import { getDefaultColor } from "../helpers/Functions";
 
-const RealatedPosts = ({ related_posts, related_loading }) => {
+const RealatedPosts = ({ navigation, related_posts, related_loading }) => {
   const colorScheme = useColorScheme();
   return (
     <View
@@ -38,7 +39,6 @@ const RealatedPosts = ({ related_posts, related_loading }) => {
                   <BlogPostItem
                     item={item}
                     {...{
-                      scrollTop: true,
                       isLoaded: false,
                     }}
                   />
@@ -57,4 +57,4 @@ const RealatedPosts = ({ related_posts, related_loading }) => {
     </View>
   );
 };
-export default RealatedPosts;
+export default withNavigation(RealatedPosts);

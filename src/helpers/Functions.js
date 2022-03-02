@@ -116,6 +116,30 @@ export function hexToRgbA(hex, alpha) {
   throw new Error("Bad Hex");
 }
 
+/**
+ * @name stripPostHtmlComments
+ * @description removes HTML comments from the given array object item
+ * @param {array or object} data
+ * @param {field key, default is 'content'} field
+ * @returns array or object
+ */
+export function stripPostHtmlComments(data, field = "content") {
+  Array.isArray(data)
+    ? data.map((item, index) => {
+        data[index][field] = item[field].replace(/<\!--.*?-->/g, "");
+      })
+    : typeof data === "object"
+    ? (data[field] = data[field].replace(/<\!--.*?-->/g, ""))
+    : data;
+
+  return data;
+}
+
+/**
+ *
+ * @param {string} string
+ * @returns
+ */
 export function countWords(string) {
   return string.replace(/(<([^>]+)>)/gi, "").split(" ").length;
 }
@@ -123,5 +147,5 @@ export function countWords(string) {
 export function calculatePostReadingTime(string) {
   const wordCount = countWords(string);
 
-  return Math.floor(wordCount / 170) + "~" + Math.ceil(wordCount / 170) + "dk";
+  return Math.ceil(wordCount / 160) + "~" + Math.ceil(wordCount / 100) + "dk";
 }

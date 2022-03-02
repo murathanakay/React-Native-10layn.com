@@ -8,6 +8,7 @@ import getStyleSheet from "../styles/BaseStyles";
 import Moment from "moment";
 import "moment/src/locale/tr";
 import LikeMe from "./common/LikeMe";
+// import CachedImage from "react-native-expo-cached-image";
 
 const BlogPostItem = React.memo(
   ({ item, navigation, sourceKey, liked, ...props }) => {
@@ -25,7 +26,7 @@ const BlogPostItem = React.memo(
         onPress={() => {
           props.onPress
             ? props.onPress()
-            : navigation.navigate(props.screen ? props.screen : "Show", {
+            : navigation.push(props.screen ? props.screen : "Show", {
                 id: item.id,
                 sourceKey,
                 item,
@@ -42,6 +43,7 @@ const BlogPostItem = React.memo(
         ]}
       >
         <ImageBackground
+          isBackground
           source={{ uri: item.image_url, cache: "force-cache" }}
           style={Styles.image}
         >
