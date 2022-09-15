@@ -1,6 +1,6 @@
 # React-Native-10layn.com
 
-This is an Native App for 10layn.com with using 
+This is a Native App for 10layn.com with using 
 
 <a href="https://reactnative.dev/">React Native</a>
 
