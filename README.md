@@ -4,7 +4,7 @@ This is a Native App for 10layn.com with using
 
 <a href="https://reactnative.dev/">React Native</a>
 
-<a href="https://reactnative.dev/">Expo</a>
+[Expo](https://expo.dev/)
 
 <a href="https://socket.io/">Socket.IO</a>
 
